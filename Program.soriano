@@ -1,0 +1,145 @@
+﻿
+using System.Text;
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+namespace TaskMaster
+{
+    // TASK 1: Struct (Value Type)
+    public struct TaskPriority
+    {
+        public int Level;
+
+        public TaskPriority(int level)
+        {
+            Level = level;
+        }
+    }
+
+    // TASK 3: Enum (None = 0 REQUIRED)
+    public enum Category
+    {
+        None = 0,
+        Work,
+        Home,
+        Personal
+    }
+
+    // TASK 1: Class (Reference Type)
+    public class UserTask
+    {
+        public string Title;
+        public TaskPriority Priority;
+        public bool IsCompleted;
+        public Category Category;
+
+        // TASK 2: Switch Expression (C# 9+ compatible)
+        public string GetStatus()
+        {
+            return IsCompleted switch
+            {
+                true => "Completed",
+                false => "Pending"
+            };
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            List<UserTask> tasks = new List<UserTask>();
+            bool addMore = true;
+
+            while (addMore)
+            {
+                Console.Write("Enter task title: ");
+                string title = Console.ReadLine();
+
+                Console.Write("Enter priority (1-5): ");
+                int priorityLevel;
+                int.TryParse(Console.ReadLine(), out priorityLevel);
+
+                Console.Write("Is task completed? (y/n): ");
+                bool isCompleted = Console.ReadLine().ToLower() == "y";
+
+                Console.Write("Category (Work/Home/Personal): ");
+                Category category;
+                Enum.TryParse(Console.ReadLine(), true, out category);
+
+                UserTask task = new UserTask();
+                task.Title = title;
+                task.Priority = new TaskPriority(priorityLevel);
+                task.IsCompleted = isCompleted;
+                task.Category = category;
+
+                tasks.Add(task);
+
+                Console.Write("Add another task? (y/n): ");
+                addMore = Console.ReadLine().ToLower() == "y";
+            }
+
+            // TASK 2: foreach + Interpolated Strings
+            Console.WriteLine("\n--- ALL TASKS ---");
+            foreach (UserTask task in tasks)
+            {
+                Console.WriteLine(
+                    $"Title: {task.Title}, " +
+                    $"Priority: {task.Priority.Level}, " +
+                    $"Category: {task.Category}, " +
+                    $"Status: {task.GetStatus()}"
+                );
+            }
+
+            // TASK 3: LINQ filtering
+            Console.WriteLine("\n--- WORK TASKS ONLY ---");
+            var workTasks = tasks.Where(t => t.Category == Category.Work);
+
+            foreach (UserTask task in workTasks)
+            {
+                Console.WriteLine($"{task.Title} (Priority {task.Priority.Level})");
+            }
+
+            // TASK 2: StringBuilder
+            StringBuilder report = new StringBuilder();
+            foreach (UserTask task in tasks)
+            {
+                report.AppendLine(
+                    $"{task.Title} | {task.Category} | {task.GetStatus()}"
+                );
+            }
+
+            // TASK 4: Save to file
+            SaveTasksToFile(report.ToString());
+
+            Console.WriteLine("\nTasks saved to tasks.txt");
+            Console.ReadKey();
+        }
+
+        // TASK 4: Error Handling + using + rethrow
+        static void SaveTasksToFile(string content)
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter("tasks.txt"))
+                {
+                    writer.Write(content);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("File save error:");
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+            finally
+            {
+                Console.WriteLine("File operation finished.");
+            }
+        }
+    }
+}
